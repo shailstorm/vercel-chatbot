@@ -49,33 +49,14 @@ const CHART_TYPES = [
   { value: '9', label: 'Area' },
 ];
 
-export const chartArtifact = new Artifact<'chart', ChartMetadata>({
-  kind: 'chart',
-  description: 'Live interactive financial charts with TradingView',
-  initialize: async ({ setMetadata }) => {
-    setMetadata({
-      symbol: 'AAPL',
-      interval: 'D',
-      theme: 'dark',
-      chartType: 'candlestick',
-      showVolume: true,
-      indicators: ['MA:50', 'MA:200'],
-    });
-  },
-  onStreamPart: ({ streamPart, setArtifact }) => {
-    if (streamPart.type === 'data-chartDelta') {
-      setArtifact((draftArtifact) => {
-        const config: ChartConfig = JSON.parse(streamPart.data || '{}');
-        return {
-          ...draftArtifact,
-          content: JSON.stringify(config),
-          isVisible: true,
-          status: 'streaming',
-        };
-      });
-    }
-  },
-  content: ({ content, metadata, setMetadata, status, isInline }) => {
+// Chart content component to satisfy React hooks rules
+function ChartContent({ content, metadata, setMetadata, status, isInline }: {
+  content: string;
+  metadata: ChartMetadata | null;
+  setMetadata: (metadata: ChartMetadata) => void;
+  status: 'idle' | 'streaming';
+  isInline?: boolean;
+}) {
     const containerRef = useRef<HTMLDivElement>(null);
     const widgetRef = useRef<any>(null);
     const [currentConfig, setCurrentConfig] = useState<ChartConfig>(() => {
@@ -186,7 +167,7 @@ export const chartArtifact = new Artifact<'chart', ChartMetadata>({
           };
 
       widgetRef.current = new (window as any).TradingView.widget(widgetConfig);
-    }, [currentConfig.symbol, metadata, isInline]);
+    }, [currentConfig.symbol, currentConfig.interval, metadata, isInline]);
 
     // Initialize TradingView widget
     useEffect(() => {
@@ -239,7 +220,7 @@ export const chartArtifact = new Artifact<'chart', ChartMetadata>({
         {!isInline && (
           <div className="flex items-center justify-between px-4 py-2 border-b">
             <div className="flex items-center gap-2">
-              <LineChartIcon className="h-4 w-4" />
+              <LineChartIcon className="size-4" />
               <span className="font-semibold text-lg">
                 {currentConfig.symbol || 'Loading...'}
               </span>
@@ -291,7 +272,7 @@ export const chartArtifact = new Artifact<'chart', ChartMetadata>({
           <div 
             id={`tradingview_${Date.now()}`}
             ref={containerRef}
-            className="w-full h-full"
+            className="size-full"
           />
         </div>
 
@@ -301,7 +282,7 @@ export const chartArtifact = new Artifact<'chart', ChartMetadata>({
             <div className="flex items-center justify-between">
               <span>Real-time data provided by TradingView</span>
               <div className="flex items-center gap-2">
-                <CalendarIcon className="h-3 w-3" />
+                <CalendarIcon className="size-3" />
                 <span>Live Market Data</span>
               </div>
             </div>
@@ -309,5 +290,33 @@ export const chartArtifact = new Artifact<'chart', ChartMetadata>({
         )}
       </div>
     );
+}
+
+export const chartArtifact = new Artifact<'chart', ChartMetadata>({
+  kind: 'chart',
+  description: 'Live interactive financial charts with TradingView',
+  initialize: async ({ setMetadata }) => {
+    setMetadata({
+      symbol: 'AAPL',
+      interval: 'D',
+      theme: 'dark',
+      chartType: 'candlestick',
+      showVolume: true,
+      indicators: ['MA:50', 'MA:200'],
+    });
   },
+  onStreamPart: ({ streamPart, setArtifact }) => {
+    if (streamPart.type === 'data-chartDelta') {
+      setArtifact((draftArtifact) => {
+        const config: ChartConfig = JSON.parse(streamPart.data || '{}');
+        return {
+          ...draftArtifact,
+          content: JSON.stringify(config),
+          isVisible: true,
+          status: 'streaming',
+        };
+      });
+    }
+  },
+  content: ChartContent,
 });

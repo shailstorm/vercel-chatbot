@@ -199,6 +199,8 @@ const PureHitboxLayer = ({
             isChart ? 'pointer-events-auto' : ''
           }`}
           onClick={isChart ? handleClick : undefined}
+          role={isChart ? "button" : undefined}
+          tabIndex={isChart ? 0 : undefined}
         >
           <FullscreenIcon />
         </div>
@@ -231,7 +233,7 @@ const PureDocumentHeader = ({
         ) : kind === 'image' ? (
           <ImageIcon />
         ) : kind === 'chart' ? (
-          <LineChartIcon className="h-4 w-4" />
+          <LineChartIcon className="size-4" />
         ) : (
           <FileIcon />
         )}
