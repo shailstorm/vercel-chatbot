@@ -4,6 +4,7 @@ import {
   wrapLanguageModel,
 } from 'ai';
 import { xai } from '@ai-sdk/xai';
+import { anthropic } from '@ai-sdk/anthropic';
 import {
   artifactModel,
   chatModel,
