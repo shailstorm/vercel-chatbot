@@ -185,8 +185,8 @@ const PureHitboxLayer = ({
   
   return (
     <div
-      className={`absolute top-0 left-0 rounded-xl z-10 ${
-        isChart ? 'pointer-events-none' : 'size-full'
+      className={`absolute top-0 left-0 rounded-xl z-10 size-full ${
+        isChart ? 'pointer-events-none' : ''
       }`}
       ref={hitboxRef}
       onClick={isChart ? undefined : handleClick}
