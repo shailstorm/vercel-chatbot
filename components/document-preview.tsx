@@ -10,6 +10,7 @@ import {
 } from 'react';
 import type { ArtifactKind, UIArtifact } from './artifact';
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
+import { LineChartIcon } from 'lucide-react';
 import { cn, fetcher } from '@/lib/utils';
 import type { Document } from '@/lib/db/schema';
 import { InlineDocumentSkeleton } from './document-skeleton';
@@ -21,6 +22,8 @@ import { useArtifact } from '@/hooks/use-artifact';
 import equal from 'fast-deep-equal';
 import { SpreadsheetEditor } from './sheet-editor';
 import { ImageEditor } from './image-editor';
+import { chartArtifact } from '@/artifacts/chart/client';
+import { useState } from 'react';
 
 interface DocumentPreviewProps {
   isReadonly: boolean;
@@ -177,16 +180,28 @@ const PureHitboxLayer = ({
     [setArtifact, result],
   );
 
+  // For charts, make the hitbox only cover the expand button area to allow chart interactivity
+  const isChart = result?.kind === 'chart';
+  
   return (
     <div
-      className="size-full absolute top-0 left-0 rounded-xl z-10"
+      className={`absolute top-0 left-0 rounded-xl z-10 size-full ${
+        isChart ? 'pointer-events-none' : ''
+      }`}
       ref={hitboxRef}
-      onClick={handleClick}
+      onClick={isChart ? undefined : handleClick}
       role="presentation"
       aria-hidden="true"
     >
       <div className="w-full p-4 flex justify-end items-center">
-        <div className="absolute right-[9px] top-[13px] p-2 hover:dark:bg-zinc-700 rounded-md hover:bg-zinc-100">
+        <div 
+          className={`absolute right-[9px] top-[13px] p-2 hover:dark:bg-zinc-700 rounded-md hover:bg-zinc-100 ${
+            isChart ? 'pointer-events-auto' : ''
+          }`}
+          onClick={isChart ? handleClick : undefined}
+          role={isChart ? "button" : undefined}
+          tabIndex={isChart ? 0 : undefined}
+        >
           <FullscreenIcon />
         </div>
       </div>
@@ -217,6 +232,8 @@ const PureDocumentHeader = ({
           </div>
         ) : kind === 'image' ? (
           <ImageIcon />
+        ) : kind === 'chart' ? (
+          <LineChartIcon className="size-4" />
         ) : (
           <FileIcon />
         )}
@@ -236,12 +253,13 @@ const DocumentHeader = memo(PureDocumentHeader, (prevProps, nextProps) => {
 
 const DocumentContent = ({ document }: { document: Document }) => {
   const { artifact } = useArtifact();
+  const [chartMetadata, setChartMetadata] = useState<any>(null);
 
   const containerClassName = cn(
     'h-[257px] overflow-y-scroll border rounded-b-2xl dark:bg-muted border-t-0 dark:border-zinc-700',
     {
       'p-4 sm:px-14 sm:py-16': document.kind === 'text',
-      'p-0': document.kind === 'code',
+      'p-0': document.kind === 'code' || document.kind === 'chart',
     },
   );
 
@@ -278,6 +296,22 @@ const DocumentContent = ({ document }: { document: Document }) => {
           currentVersionIndex={0}
           status={artifact.status}
           isInline={true}
+        />
+      ) : document.kind === 'chart' ? (
+        <chartArtifact.content
+          title={document.title}
+          content={document.content ?? ''}
+          isCurrentVersion={true}
+          currentVersionIndex={0}
+          status={artifact.status}
+          mode="edit"
+          onSaveContent={() => {}}
+          suggestions={[]}
+          isInline={true}
+          getDocumentContentById={() => document.content ?? ''}
+          isLoading={false}
+          metadata={chartMetadata}
+          setMetadata={setChartMetadata}
         />
       ) : null}
     </div>
