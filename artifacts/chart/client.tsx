@@ -94,15 +94,6 @@ function ChartContent({ content, metadata, setMetadata, status, isInline }: {
     const initializeWidget = useCallback(() => {
       if (!containerRef.current || !(window as any).TradingView) return;
 
-      // Clean up previous widget
-      if (widgetRef.current) {
-        try {
-          widgetRef.current.remove();
-        } catch (e) {
-          console.error('Failed to remove widget:', e);
-        }
-      }
-
       const chartTypeMap: Record<string, number> = {
         'candlestick': 1,
         'bars': 2,
@@ -110,12 +101,21 @@ function ChartContent({ content, metadata, setMetadata, status, isInline }: {
         'area': 9,
       };
 
+      // Helper to format symbol for TradingView
+      const formatSymbol = (symbol?: string) => {
+        if (!symbol) return 'NASDAQ:AAPL';
+        // If already has exchange prefix, use as-is
+        if (symbol.includes(':')) return symbol;
+        // Add NASDAQ prefix for common US stocks
+        return `NASDAQ:${symbol}`;
+      };
+
       const widgetConfig = isInline ? {
             // Simplified config for inline view
             width: '100%',
             height: 257,
-            symbol: currentConfig.symbol || 'NASDAQ:AAPL',
-            interval: currentConfig.interval || 'D',
+            symbol: formatSymbol(currentConfig.symbol || metadata?.symbol),
+            interval: currentConfig.interval || metadata?.interval || 'D',
             timezone: 'Etc/UTC',
             theme: metadata?.theme || 'dark',
             style: chartTypeMap[metadata?.chartType || 'candlestick'] || 1,
@@ -142,8 +142,8 @@ function ChartContent({ content, metadata, setMetadata, status, isInline }: {
             // Full config for expanded view
             width: '100%',
             height: 600,
-            symbol: currentConfig.symbol || 'NASDAQ:AAPL',
-            interval: currentConfig.interval || 'D',
+            symbol: formatSymbol(currentConfig.symbol || metadata?.symbol),
+            interval: currentConfig.interval || metadata?.interval || 'D',
             timezone: 'Etc/UTC',
             theme: metadata?.theme || 'dark',
             style: chartTypeMap[metadata?.chartType || 'candlestick'] || 1,
@@ -295,6 +295,8 @@ function ChartContent({ content, metadata, setMetadata, status, isInline }: {
 export const chartArtifact = new Artifact<'chart', ChartMetadata>({
   kind: 'chart',
   description: 'Live interactive financial charts with TradingView',
+  actions: [],
+  toolbar: [],
   initialize: async ({ setMetadata }) => {
     setMetadata({
       symbol: 'AAPL',

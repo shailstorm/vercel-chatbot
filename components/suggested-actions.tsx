@@ -20,19 +20,19 @@ function PureSuggestedActions({
 }: SuggestedActionsProps) {
   const suggestedActions = [
     {
-      title: 'What are the advantages',
-      label: 'of using Next.js?',
-      action: 'What are the advantages of using Next.js?',
+      title: 'Show me',
+      label: 'MSFT stock chart over the past year',
+      action: 'Display MSFT stock chart over the past year',
     },
     {
-      title: 'Write code to',
-      label: `demonstrate djikstra's algorithm`,
-      action: `Write code to demonstrate djikstra's algorithm`,
+      title: 'What are payoff curves',
+      label: `for different options for Boeing`,
+      action: `Display payoff curves for different options for Boeing`,
     },
     {
-      title: 'Help me write an essay',
-      label: `about silicon valley`,
-      action: `Help me write an essay about silicon valley`,
+      title: 'Compare',
+      label: `Google and Apple stocks`,
+      action: `Compare Google and Apple stocks`,
     },
     {
       title: 'What is the weather',
